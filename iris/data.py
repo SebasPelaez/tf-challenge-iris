@@ -6,26 +6,59 @@ from torchvision.io import read_image
 from typing import Tuple
 import json
 
+labels = [
+    "tienda",
+    "parqueadero",
+    "belleza/barbería/peluquería",
+    "electrónica/cómputo",
+    "café/restaurante",
+    "electrodomésticos",
+    "talleres carros/motos",
+    "zapatería",
+    "muebles/tapicería",
+    "ferretería",
+    "carnicería/fruver",
+    "puesto móvil/toldito",
+    "farmacia",
+    "supermercado",
+    "ropa",
+    "deporte",
+    "licorera",
+    "hotel",
+    "animales",
+    "bar",
+    "f",
+]
+
+
 class LandMarkDataset(Dataset):
-    def __init__(self, img_dir, annotations_file: pd.DataFrame, transform=None, target_transform=None) -> None:
+    def __init__(
+        self,
+        img_dir,
+        annotations_file: pd.DataFrame,
+        transform=None,
+        target_transform=None,
+    ) -> None:
         self.img_dir = img_dir
         self.annotations_file = annotations_file
         self.transform = transform
         self.target_transform = target_transform
-    
+
     def __len__(self):
         return self.annotations_file.shape[0]
-    
+
     def __getitem__(self, index) -> Tuple[torch.tensor, torch.tensor]:
-        img_metadata_path = os.path.join(self.img_dir, self.annotations_file.iloc[index, 0])
+        img_metadata_path = os.path.join(
+            self.img_dir, self.annotations_file.iloc[index, 0]
+        )
         image = read_image(img_metadata_path + ".png")
         with open(img_metadata_path + ".json", "r") as file:
             label_metadata = json.load(file)
-        label = label_metadata["labels"][0]
+        label = labels.index(label_metadata["labels"][0])
 
         if self.transform:
             image = self.transform(image)
-        
+
         if self.target_transform:
             label = self.target_transform(label)
 

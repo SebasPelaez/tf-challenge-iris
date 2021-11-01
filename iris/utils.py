@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 
-img_path = Path.cwd() 
+img_path = Path.cwd()
 img_path = img_path / "dataset/"
 img_paths = [img.stem for img in img_path.glob("*.json")]
 sampled_group = np.random.choice(5, len(img_paths))
