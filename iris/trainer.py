@@ -10,13 +10,25 @@ from iris.train_loop import TrainLoop
 
 
 def main(
-    kfold, batch_size, in_features, out_features, learning_rate, gamma, step_size, num_epochs, save_models
+    kfold,
+    batch_size,
+    in_features,
+    out_features,
+    learning_rate,
+    gamma,
+    step_size,
+    num_epochs,
+    save_models,
 ):
     img_metadata = pd.read_csv("img_metadata.csv")
-    
+
     # Creates dataset and dataloaders
-    train_ds = LandMarkDataset("dataset", img_metadata[img_metadata.iloc[:,1] != kfold][:10])
-    test_ds = LandMarkDataset("dataset", img_metadata[img_metadata.iloc[:,1] == kfold][:10])
+    train_ds = LandMarkDataset(
+        "dataset", img_metadata[img_metadata.iloc[:, 1] != kfold][:10]
+    )
+    test_ds = LandMarkDataset(
+        "dataset", img_metadata[img_metadata.iloc[:, 1] == kfold][:10]
+    )
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=True)
 
@@ -24,7 +36,9 @@ def main(
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # define model and move model to the right device
-    model = BaseLine(use_pretrained=True, in_features=in_features, out_features=out_features).to(device)
+    model = BaseLine(
+        use_pretrained=True, in_features=in_features, out_features=out_features
+    ).to(device)
 
     # Define optmizer
     params = [params for params in model.parameters() if params.requires_grad]
@@ -46,12 +60,12 @@ def main(
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
         device=device,
-        save_models=save_models
+        save_models=save_models,
     )
 
 
 if __name__ == "__main__":
-    
+
     main(
         kfold=0,
         batch_size=2,
@@ -61,5 +75,5 @@ if __name__ == "__main__":
         gamma=0.1,
         step_size=100,
         num_epochs=3,
-        save_models="saved_models"
+        save_models="saved_models",
     )

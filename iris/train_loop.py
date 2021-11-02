@@ -7,6 +7,7 @@ from torch.nn import Module
 from torch.optim.lr_scheduler import _LRScheduler
 from pathlib import Path
 
+
 class TrainLoop:
     def __init__(
         self,
@@ -20,7 +21,6 @@ class TrainLoop:
         self.test_datagen = test_dataloder
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.loss_fun = loss_fun
-        
 
     def train_val(
         self,
@@ -29,7 +29,7 @@ class TrainLoop:
         optimizer: Optimizer,
         lr_scheduler: _LRScheduler,
         device: str,
-        save_models:str
+        save_models: str,
     ):
         models_folder = Path(save_models)
         if not models_folder.exists():
@@ -51,7 +51,15 @@ class TrainLoop:
             )
 
             # evaluate
-            self.prev_loss = self._val_step(model, self.test_datagen, self.loss_fun, device, models_folder, epoch, self.prev_loss)
+            self.prev_loss = self._val_step(
+                model,
+                self.test_datagen,
+                self.loss_fun,
+                device,
+                models_folder,
+                epoch,
+                self.prev_loss,
+            )
 
         print("Done!")
 
@@ -63,7 +71,7 @@ class TrainLoop:
         device: str,
         optimizer: Optimizer,
         lr_scheduler=None,
-        ):
+    ):
         model.train()
         size = len(data_loader.dataset)
         for batch, (X, y) in enumerate(data_loader):
@@ -85,15 +93,30 @@ class TrainLoop:
             if batch % 1 == 0:
                 loss, current = loss.item(), batch * len(X)
                 print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5f}]")
-                
 
-    def val(self, model: Module, data_loader: DataLoader, loss_fun: Callable, device: str, models_folder:str, epoch:str, prev_loss: torch.tensor):
-        self._val_step(model, data_loader, loss_fun, device, models_folder, epoch, prev_loss)
+    def val(
+        self,
+        model: Module,
+        data_loader: DataLoader,
+        loss_fun: Callable,
+        device: str,
+        models_folder: str,
+        epoch: str,
+        prev_loss: torch.tensor,
+    ):
+        self._val_step(
+            model, data_loader, loss_fun, device, models_folder, epoch, prev_loss
+        )
 
     @staticmethod
     def _val_step(
-        model: Module, data_loader: DataLoader, loss_fun: Callable, device: str, models_folder:str, epoch:str, prev_loss: torch.tensor
-
+        model: Module,
+        data_loader: DataLoader,
+        loss_fun: Callable,
+        device: str,
+        models_folder: str,
+        epoch: str,
+        prev_loss: torch.tensor,
     ):
         model.eval()
         size = len(data_loader.dataset)
@@ -113,5 +136,5 @@ class TrainLoop:
 
         if test_loss < prev_loss:
             torch.save(model, f"{str(models_folder)}/epoch_{epoch}_metric_{correct}.pt")
-        
+
         return test_loss
