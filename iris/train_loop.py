@@ -35,7 +35,7 @@ class TrainLoop:
         if not models_folder.exists():
             models_folder.mkdir()
 
-        self.prev_loss = torch.tensor([float("inf")])
+        self.prev_loss = torch.tensor([float("inf")]).to(self.device)
 
         for epoch in range(num_epochs):
             print(f"Epoch {epoch+1}\n-------------------------------")
