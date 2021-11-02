@@ -10,7 +10,7 @@ from iris.train_loop import TrainLoop
 
 
 def main(
-    kfold, batch_size, in_features, out_features, learning_rate, gamma, step_size, num_epochs
+    kfold, batch_size, in_features, out_features, learning_rate, gamma, step_size, num_epochs, save_models
 ):
     img_metadata = pd.read_csv("img_metadata.csv")
     
@@ -46,6 +46,7 @@ def main(
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
         device=device,
+        save_models=save_models
     )
 
 
@@ -59,5 +60,6 @@ if __name__ == "__main__":
         learning_rate=0.001,
         gamma=0.1,
         step_size=100,
-        num_epochs=3
+        num_epochs=3,
+        save_models="saved_models"
     )
