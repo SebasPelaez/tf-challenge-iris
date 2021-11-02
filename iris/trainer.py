@@ -10,7 +10,8 @@ from iris.train_loop import TrainLoop
 
 
 def main(
-    kfold,
+    img_dir,
+    img_metadata,
     batch_size,
     in_features,
     out_features,
@@ -20,17 +21,16 @@ def main(
     num_epochs,
     save_models,
 ):
-    img_metadata = pd.read_csv("img_metadata.csv")
 
     # Creates dataset and dataloaders
     train_ds = LandMarkDataset(
-        "dataset", img_metadata[img_metadata.iloc[:, 1] != kfold][:10]
+        img_dir, img_metadata[0]
     )
     test_ds = LandMarkDataset(
-        "dataset", img_metadata[img_metadata.iloc[:, 1] == kfold][:10]
+        img_dir, img_metadata[1]
     )
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
-    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=True)
+    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 
     # set device
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -66,8 +66,13 @@ def main(
 
 if __name__ == "__main__":
 
+    img_metadata = pd.read_csv("img_metadata_train_dev.csv")
+    train_img_metadata = img_metadata[img_metadata.iloc[:, 1] != 0][:10]
+    test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:10]
+
     main(
-        kfold=0,
+        img_dir="dataset/train/",
+        img_metadata=(train_img_metadata, test_img_metadata),
         batch_size=2,
         in_features=1000,
         out_features=20,
