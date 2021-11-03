@@ -96,7 +96,7 @@ class TrainLoop:
 
             if batch % 1 == 0:
                 loss, current = loss.item(), batch * len(X)
-                print(f"loss: {loss:>7f}  [{current:>5d}/{size.item():>5f}]")
+                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5f}]")
 
     def val(
         self,
