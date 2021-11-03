@@ -13,7 +13,7 @@ def main(
     img_dir,
     img_metadata,
     batch_size,
-    in_features,
+    model_name,
     out_features,
     learning_rate,
     gamma,
@@ -37,7 +37,7 @@ def main(
 
     # define model and move model to the right device
     model = BaseLine(
-        use_pretrained=True, in_features=in_features, out_features=out_features
+        model_name=model_name, use_pretrained=True, out_features=out_features
     ).to(device)
 
     # Define optmizer
@@ -67,15 +67,15 @@ def main(
 if __name__ == "__main__":
 
     img_metadata = pd.read_csv("img_metadata_train_dev.csv")
-    train_img_metadata = img_metadata[img_metadata.iloc[:, 1] != 0][:10]
-    test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:10]
+    train_img_metadata = img_metadata[img_metadata.iloc[:, 1] != 0][:100]
+    test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:100]
 
     main(
         img_dir="dataset/train/",
         img_metadata=(train_img_metadata, test_img_metadata),
-        batch_size=2,
-        in_features=1000,
-        out_features=20,
+        batch_size=12,
+        model_name="resnet18",
+        out_features=21,
         learning_rate=0.001,
         gamma=0.1,
         step_size=100,
