@@ -4,6 +4,8 @@ import pandas as pd
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 from typing import Tuple
+
+from PIL import Image
 import json
 
 labels = [
@@ -51,7 +53,8 @@ class LandMarkDataset(Dataset):
         img_metadata_path = os.path.join(
             self.img_dir, self.annotations_file.iloc[index, 0]
         )
-        image = read_image(img_metadata_path + ".png")
+    
+        image = Image.open(img_metadata_path + ".png").convert("RGB")
         with open(img_metadata_path + ".json", "r") as file:
             label_metadata = json.load(file)
         label = labels.index(label_metadata["labels"][0])
@@ -62,4 +65,4 @@ class LandMarkDataset(Dataset):
         if self.target_transform:
             label = self.target_transform(label)
 
-        return image[:3], label
+        return image, label
