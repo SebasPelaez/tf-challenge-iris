@@ -55,6 +55,10 @@ class TrainLoop:
                 lr_scheduler,
             )
 
+            # https://discuss.pytorch.org/t/how-to-use-torch-optim-lr-scheduler-exponentiallr/12444
+            if lr_scheduler is not None:
+                lr_scheduler.step()
+
             # evaluate
             self.prev_loss = self._val_step(
                 model,
@@ -75,7 +79,6 @@ class TrainLoop:
         loss_fun: Callable,
         device: str,
         optimizer: Optimizer,
-        lr_scheduler=None,
     ):
         model.train()
         size = len(data_loader.dataset)
@@ -92,12 +95,9 @@ class TrainLoop:
             # optimizer step (updates parameters)
             optimizer.step()
 
-            if lr_scheduler is not None:
-                lr_scheduler.step()
-
             if batch % 1 == 0:
                 loss, current = loss.item(), batch * len(X)
-                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5f}]")
+                print(f"loss: {loss:>7f}  [{current:>5d}/{size.item():>5f}]")
 
     def val(
         self,
