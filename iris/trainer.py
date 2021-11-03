@@ -16,8 +16,8 @@ def main(
     train_trans: transforms.Compose,
     dev_trans: transforms.Compose,
     batch_size: int,
-    model_name: str,
-    out_features: int,
+    model: torch.nn.Module,
+    out_features:int,
     optimizer_params: dict,
     lr_scheduler_params: dict,
     num_epochs: int,
@@ -37,10 +37,6 @@ def main(
     # set device
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # define model and move model to the right device
-    model = BaseLine(
-        model_name=model_name, use_pretrained=True, out_features=out_features
-    ).to(device)
 
     # Define optmizer
     params = [params for params in model.parameters() if params.requires_grad]
@@ -78,14 +74,21 @@ if __name__ == "__main__":
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
+    # define model and move model to the right device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    out_features = 21
+    model = BaseLine(
+        model_name="resnet18", use_pretrained=True, out_features=out_features
+    ).to(device)
+
     main(
         img_dir="dataset/train/",
         img_metadata=(train_img_metadata, test_img_metadata),
         train_trans=train_trans, 
         dev_trans=train_trans,
         batch_size=12,
-        model_name="resnet18",
-        out_features=21,
+        model=model,
+        out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose":True},
         num_epochs=20,

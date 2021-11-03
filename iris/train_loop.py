@@ -139,6 +139,6 @@ class TrainLoop:
         )
 
         if test_loss < prev_loss:
-            torch.save(model, f"{str(models_folder)}/epoch_{epoch}_metric_{correct}.pt")
+            torch.save(model, f"{str(models_folder)}/{model.model_name}_epoch_{epoch}_metric_{correct}.pt")
 
         return test_loss
