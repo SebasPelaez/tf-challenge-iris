@@ -17,8 +17,8 @@ class TrainLoop:
         loss_fun: Callable,
     ) -> None:
         self.num_clases = num_clases
-        self.train_datagen = train_dataloder
-        self.test_datagen = test_dataloder
+        self.train_dataloder = train_dataloder
+        self.test_dataloder = test_dataloder
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.loss_fun = loss_fun
 
@@ -48,11 +48,10 @@ class TrainLoop:
             # train one epoch
             self._train_step(
                 model,
-                self.train_datagen,
+                self.train_dataloder,
                 self.loss_fun,
                 device,
                 optimizer,
-                lr_scheduler,
             )
 
             # https://discuss.pytorch.org/t/how-to-use-torch-optim-lr-scheduler-exponentiallr/12444
@@ -62,7 +61,7 @@ class TrainLoop:
             # evaluate
             self.prev_loss = self._val_step(
                 model,
-                self.test_datagen,
+                self.test_dataloder,
                 self.loss_fun,
                 device,
                 models_folder,
