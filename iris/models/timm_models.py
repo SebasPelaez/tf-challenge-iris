@@ -1,14 +1,12 @@
 from torch.nn import Module, Linear
-from torchvision import models
+import timm
 
+class TimmModel(Module):
+    def __init__(self, model_name, use_pretrained, out_features):
+        super().__init__()
 
-class BaseLine(Module):
-    def __init__(self, model_name, use_pretrained, out_features=2) -> None:
-        super(BaseLine, self).__init__()
-        
         self.model_name = model_name
-        model = getattr(models, model_name)
-        self.model = model(pretrained=use_pretrained)
+        self.model = timm.create_model(model_name, pretrained=use_pretrained)
         last_layer_name, last_layer = list(self.model.named_modules())[-1]
         
         if use_pretrained:
@@ -21,3 +19,6 @@ class BaseLine(Module):
         # takes input with shape (3, ?, ?)
         preds = self.model(x)
         return preds
+
+model = TimmModel("efficientnet_b1", True, 21)
+model
