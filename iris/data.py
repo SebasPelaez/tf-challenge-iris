@@ -3,6 +3,7 @@ import torch
 import pandas as pd
 from torch.utils.data import Dataset
 from torchvision.io import read_image
+from torchvision.transforms import ToTensor
 from typing import Tuple
 
 from PIL import Image
@@ -59,8 +60,7 @@ class LandMarkDataset(Dataset):
             label_metadata = json.load(file)
         label = labels.index(label_metadata["labels"][0])
 
-        if self.transform:
-            image = self.transform(image)
+        image = self.transform(image) if self.transform else ToTensor()(image.convert("RGB"))
 
         if self.target_transform:
             label = self.target_transform(label)

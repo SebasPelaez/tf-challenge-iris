@@ -91,6 +91,6 @@ if __name__ == "__main__":
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose":True},
-        num_epochs=20,
+        num_epochs=2,
         save_models="saved_models",
     )
