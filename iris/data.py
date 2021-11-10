@@ -50,7 +50,15 @@ class LandMarkDataset(Dataset):
     def __len__(self):
         return self.annotations_file.shape[0]
 
-    def __getitem__(self, index) -> Tuple[torch.tensor, torch.tensor]:
+    def __getitem__(self, index:int) -> Tuple[torch.tensor, torch.tensor]:
+        """[summary]
+
+        Args:
+            index (int): Index
+
+        Returns:
+            Tuple[torch.tensor, torch.tensor]: [description]
+        """
         img_metadata_path = os.path.join(
             self.img_dir, self.annotations_file.iloc[index, 0]
         )
