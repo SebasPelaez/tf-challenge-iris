@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim import SGD
 from torch.utils.data import DataLoader
+from torch.nn import Sequential, Dropout, Linear
 
 from iris.data import LandMarkDataset
 from iris.models.baseline import BaseLine
@@ -74,7 +75,12 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     out_features = 21
     model = BaseLine(
-        model_name="resnet18", use_pretrained=True, out_features=out_features
+        model_name="efficientnet_b7", use_pretrained=True, last_layer={
+            "classifier": Sequential(
+                Dropout(p=0.5, inplace=True),
+                Linear(in_features=2560, out_features=out_features)
+            )
+        }
     ).to(device)
 
     main(
