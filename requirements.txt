@@ -13,6 +13,7 @@ filelock==3.3.2
 html5lib==1.1
 idna==3.3
 imageio==2.10.3
+-e git+https://github.com/anvelezec/tf-challenge-iris.git@bb75465cca55a1155007c3a6d76749b5102b687e#egg=Iris
 joblib==1.1.0
 keyring==21.8.0
 kiwisolver==1.3.2
@@ -23,6 +24,7 @@ networkx==2.6.3
 numpy==1.21.4
 opencv-python-headless==4.5.4.58
 packaging==20.9
+pandas==1.3.4
 pastel==0.2.1
 pexpect==4.8.0
 Pillow==8.4.0
@@ -34,6 +36,7 @@ ptyprocess==0.7.0
 pylev==1.4.0
 pyparsing==3.0.4
 python-dateutil==2.8.2
+pytz==2021.3
 PyWavelets==1.2.0
 PyYAML==6.0
 qudida==0.0.4
@@ -48,6 +51,7 @@ threadpoolctl==3.0.0
 tifffile==2021.11.2
 tomlkit==0.7.2
 torch==1.10.0
+torchvision==0.11.1
 typing-extensions==3.10.0.2
 urllib3==1.26.7
 virtualenv==20.10.0

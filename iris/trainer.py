@@ -75,11 +75,8 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     out_features = 21
     model = BaseLine(
-        model_name="efficientnet_b7", use_pretrained=True, last_layer={
-            "classifier": Sequential(
-                Dropout(p=0.5, inplace=True),
-                Linear(in_features=2560, out_features=out_features)
-            )
+        model_name="densenet121", use_pretrained=True, last_layer={
+            "classifier": Linear(in_features=1024, out_features=out_features)
         }
     ).to(device)
 
