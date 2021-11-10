@@ -38,9 +38,13 @@ class TrainLoop:
         self.prev_loss = torch.tensor([float("inf")]).to(self.device)
 
         notrainable_total_params = sum(p.numel() for p in model.parameters())
-        trainable_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        trainable_total_params = sum(
+            p.numel() for p in model.parameters() if p.requires_grad
+        )
 
-        print(f"Number no trainable parameters: {notrainable_total_params} \nNumber trainable parameters: {trainable_total_params}" )
+        print(
+            f"Number no trainable parameters: {notrainable_total_params} \nNumber trainable parameters: {trainable_total_params}"
+        )
 
         for epoch in range(num_epochs):
             print(f"Epoch {epoch+1}\n-------------------------------")
@@ -139,6 +143,9 @@ class TrainLoop:
         )
 
         if test_loss < prev_loss:
-            torch.save(model, f"{str(models_folder)}/{model.model_name}_epoch_{epoch}_metric_{correct}.pt")
+            torch.save(
+                model,
+                f"{str(models_folder)}/{model.model_name}_epoch_{epoch}_metric_{correct}.pt",
+            )
 
         return test_loss
