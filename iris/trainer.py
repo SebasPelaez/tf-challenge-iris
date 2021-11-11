@@ -29,7 +29,7 @@ def main(
     features_weights: list = None,
 ):
     sampler = (
-        WeightedRandomSampler(features_weights, batch_size)
+        WeightedRandomSampler(features_weights, img_metadata[0].shape[0])
         if features_weights is not None
         else None
     )
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     img_metadata = pd.read_csv("img_metadata_train_dev.csv")
     train_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:100]
     test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:100]
-    features_weights = img_metadata.iloc[:, 4].to_numpy()[:100]
+    features_weights = img_metadata[img_metadata.iloc[:, 1] == 0].iloc[:100, 4]
 
     train_trans = transforms.Compose(
         [
