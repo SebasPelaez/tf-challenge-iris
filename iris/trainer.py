@@ -4,6 +4,8 @@ import torch.nn.functional as F
 from torch.optim import SGD
 from torch.utils.data import DataLoader
 from torch.nn import Sequential, Dropout, Linear
+from torch.utils.data import sampler
+from torch.utils.data.sampler import WeightedRandomSampler
 
 from iris.data import LandMarkDataset
 from iris.models.baseline import BaseLine
@@ -24,12 +26,14 @@ def main(
     lr_scheduler_params: dict,
     num_epochs: int,
     save_models: str,
+    features_weights: list = None,
 ):
+    sampler = WeightedRandomSampler(features_weights, batch_size) if features_weights is not None else None
 
     # Creates dataset and dataloaders
-    train_ds = LandMarkDataset(img_dir, img_metadata[0], train_trans)
+    train_ds = LandMarkDataset(img_dir, img_metadata[0], train_trans) 
     test_ds = LandMarkDataset(img_dir, img_metadata[1], dev_trans)
-    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    train_dl = DataLoader(train_ds, batch_size=batch_size, sampler=sampler)
     test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 
     # set device
@@ -62,6 +66,7 @@ if __name__ == "__main__":
     img_metadata = pd.read_csv("img_metadata_train_dev.csv")
     train_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:100]
     test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:100]
+    features_weights = img_metadata.iloc[:, 4].to_numpy()[:100]
 
     train_trans = transforms.Compose(
         [
@@ -90,6 +95,7 @@ if __name__ == "__main__":
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": True},
-        num_epochs=2,
+        num_epochs=10,
         save_models="saved_models",
+        features_weights=features_weights
     )
