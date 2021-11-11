@@ -132,7 +132,8 @@ class TrainLoop:
         with torch.no_grad():
             for batch, (X, y) in enumerate(data_loader):
                 pred = model(X.float().to(device))
-                test_loss += loss_fun(pred, y.to(device))
+                y = y.to(device)
+                test_loss += loss_fun(pred, y)
                 correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         test_loss = test_loss / batch
