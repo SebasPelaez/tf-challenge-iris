@@ -32,8 +32,8 @@ labels = [
     "licorera",
     "hotel",
     "animales",
-    "bar"
-    ]
+    "bar",
+]
 
 
 class LandMarkDataset(Dataset):
@@ -68,8 +68,12 @@ class LandMarkDataset(Dataset):
         image = Image.open(img_metadata_path + ".png").convert("RGB")
         with open(img_metadata_path + ".json", "r") as file:
             label_metadata = json.load(file)
-        
-        label_name = label_metadata["labels"] if isinstance(label_metadata["labels"], str) else label_metadata["labels"][0]
+
+        label_name = (
+            label_metadata["labels"]
+            if isinstance(label_metadata["labels"], str)
+            else label_metadata["labels"][0]
+        )
         label = labels.index(label_name)
 
         if self.transform:

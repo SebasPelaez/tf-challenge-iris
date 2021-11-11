@@ -28,10 +28,14 @@ def main(
     save_models: str,
     features_weights: list = None,
 ):
-    sampler = WeightedRandomSampler(features_weights, batch_size) if features_weights is not None else None
+    sampler = (
+        WeightedRandomSampler(features_weights, batch_size)
+        if features_weights is not None
+        else None
+    )
 
     # Creates dataset and dataloaders
-    train_ds = LandMarkDataset(img_dir, img_metadata[0], train_trans) 
+    train_ds = LandMarkDataset(img_dir, img_metadata[0], train_trans)
     test_ds = LandMarkDataset(img_dir, img_metadata[1], dev_trans)
     train_dl = DataLoader(train_ds, batch_size=batch_size, sampler=sampler)
     test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
@@ -80,9 +84,9 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     out_features = 21
     model = BaseLine(
-        model_name="densenet121", use_pretrained=True, last_layer={
-            "classifier": Linear(in_features=1024, out_features=out_features)
-        }
+        model_name="densenet121",
+        use_pretrained=True,
+        last_layer={"classifier": Linear(in_features=1024, out_features=out_features)},
     ).to(device)
 
     main(
@@ -97,5 +101,5 @@ if __name__ == "__main__":
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": True},
         num_epochs=10,
         save_models="saved_models",
-        features_weights=features_weights
+        features_weights=features_weights,
     )
