@@ -1,4 +1,5 @@
 from typing import Callable
+from matplotlib.pyplot import axis
 import torch
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer
@@ -15,11 +16,16 @@ class TrainLoop:
         train_dataloder: DataLoader,
         test_dataloder: DataLoader,
         loss_fun: Callable,
+        device: str
     ) -> None:
         self.num_clases = num_clases
         self.train_dataloder = train_dataloder
         self.test_dataloder = test_dataloder
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        self.train_dataloder_size = len(self.train_dataloder.dataset)
+        self.test_dataloder_size = len(self.test_dataloder.dataset)
+
+        self.device = device
         self.loss_fun = loss_fun
 
     def train_val(
@@ -28,7 +34,6 @@ class TrainLoop:
         model: Module,
         optimizer: Optimizer,
         lr_scheduler: _LRScheduler,
-        device: str,
         save_models: str,
     ):
         models_folder = Path(save_models)
@@ -54,24 +59,26 @@ class TrainLoop:
                 model,
                 self.train_dataloder,
                 self.loss_fun,
-                device,
+                self.device,
                 optimizer,
+                self.train_dataloder_size
             )
-
-            # https://discuss.pytorch.org/t/how-to-use-torch-optim-lr-scheduler-exponentiallr/12444
-            if lr_scheduler is not None:
-                lr_scheduler.step()
 
             # evaluate
             self.prev_loss = self._val_step(
                 model,
                 self.test_dataloder,
                 self.loss_fun,
-                device,
+                self.device,
                 models_folder,
                 epoch,
                 self.prev_loss,
+                self.test_dataloder_size
             )
+        
+            # https://discuss.pytorch.org/t/how-to-use-torch-optim-lr-scheduler-exponentiallr/12444
+            if lr_scheduler is not None:
+                lr_scheduler.step()
 
         print("Done!")
 
@@ -82,15 +89,20 @@ class TrainLoop:
         loss_fun: Callable,
         device: str,
         optimizer: Optimizer,
+        dl_size
     ):
+
+        running_loss, running_acc = 0, 0
         model.train()
-        size = len(data_loader.dataset)
         for batch, (X, y) in enumerate(data_loader):
-            pred = model(X.float().to(device))
-            loss = loss_fun(pred, y.to(device))
+            y = y.to(device)
+            preds = model(X.float().to(device))
+            loss = loss_fun(preds, y)
+
+            _, y_pred = torch.max(preds, axis=1)
 
             # Sets gradients to zero
-            model.zero_grad()
+            optimizer.zero_grad()
 
             # backpropagation (computes derivates)
             loss.backward()
@@ -99,8 +111,15 @@ class TrainLoop:
             optimizer.step()
 
             if batch % 1 == 0:
-                loss, current = loss.item(), batch * len(X)
-                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5f}]")
+                print(f"loss: {loss.item():>7f}  [{batch * len(X):>5d}/{dl_size:>5f}]")
+
+            running_loss += loss.item() * X.size(0)
+            running_acc += torch.sum(y_pred == y)
+        
+        epoch_loss = running_loss / dl_size
+        epoch_acc = running_acc / dl_size
+        print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+            "Train", epoch_loss, epoch_acc))
 
     def val(
         self,
@@ -113,7 +132,7 @@ class TrainLoop:
         prev_loss: torch.tensor,
     ):
         self._val_step(
-            model, data_loader, loss_fun, device, models_folder, epoch, prev_loss
+            model, data_loader, loss_fun, device, models_folder, epoch, prev_loss, self.test_dataloder_size
         )
 
     @staticmethod
@@ -125,27 +144,29 @@ class TrainLoop:
         models_folder: str,
         epoch: str,
         prev_loss: torch.tensor,
+        dl_size: int
     ):
         model.eval()
-        size = len(data_loader.dataset)
-        test_loss, correct = 0, 0
+        
+        running_loss, running_corrects = 0, 0
         with torch.no_grad():
             for batch, (X, y) in enumerate(data_loader):
-                pred = model(X.float().to(device))
                 y = y.to(device)
-                test_loss += loss_fun(pred, y)
-                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+                preds = model(X.float().to(device))
+                _, y_preds = torch.max(preds, axis=1)
+                
+                running_loss += loss_fun(preds, y).item() * X.size(0) # computes sum of losses
+                running_corrects += torch.sum(y_preds == y)
 
-        test_loss = test_loss / batch
-        correct /= size
-        print(
-            f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
-        )
+        epoch_loss = running_loss / dl_size # computes loss mean
+        epoch_acc = running_corrects / dl_size # computes accuracy mean
+        print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+            "Validation", epoch_loss, epoch_acc))
 
-        if test_loss < prev_loss:
+        if epoch_loss < prev_loss:
             torch.save(
                 model,
-                f"{str(models_folder)}/{model.model_name}_epoch_{epoch}_metric_{correct}.pt",
+                f"{str(models_folder)}/{model.model_name}_epoch_{epoch}_metric_{epoch_acc}.pt",
             )
 
-        return test_loss
+        return epoch_loss

@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim import SGD
 from torch.utils.data import DataLoader
-from torch.nn import Sequential, Dropout, Linear
+from torch.nn import Sequential, Dropout, Linear, CrossEntropyLoss
 from torch.utils.data import sampler
 from torch.utils.data.sampler import WeightedRandomSampler
 
@@ -26,6 +26,7 @@ def main(
     lr_scheduler_params: dict,
     num_epochs: int,
     save_models: str,
+    device:str,
     features_weights: list = None,
 ):
     sampler = (
@@ -40,9 +41,6 @@ def main(
     train_dl = DataLoader(train_ds, batch_size=batch_size, sampler=sampler)
     test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 
-    # set device
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
     # Define optmizer
     params = [params for params in model.parameters() if params.requires_grad]
     optimizer = SGD(params, **optimizer_params)
@@ -53,14 +51,14 @@ def main(
         num_clases=out_features,
         train_dataloder=train_dl,
         test_dataloder=test_dl,
-        loss_fun=F.cross_entropy,
+        loss_fun=CrossEntropyLoss(),
+        device=device
     )
     train_loop.train_val(
         num_epochs=num_epochs,
         model=model,
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
-        device=device,
         save_models=save_models,
     )
 
@@ -68,9 +66,9 @@ def main(
 if __name__ == "__main__":
 
     img_metadata = pd.read_csv("img_metadata_train_dev.csv")
-    train_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:100]
-    test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0][:100]
-    features_weights = img_metadata[img_metadata.iloc[:, 1] == 0].iloc[:100, 4]
+    train_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0]
+    test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0]
+    features_weights = img_metadata[img_metadata.iloc[:, 1] == 0].iloc[:, 4]
 
     train_trans = transforms.Compose(
         [
@@ -82,24 +80,26 @@ if __name__ == "__main__":
 
     # define model and move model to the right device
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    out_features = 21
+
+    out_features = 20
     model = BaseLine(
-        model_name="densenet121",
+        model_name="resnet18",
         use_pretrained=True,
-        last_layer={"classifier": Linear(in_features=1024, out_features=out_features)},
+        last_layer={"fc": Linear(in_features=512, out_features=out_features)},
     ).to(device)
 
     main(
-        img_dir="dataset/train/",
+        img_dir="data/train/",
         img_metadata=(train_img_metadata, test_img_metadata),
         train_trans=train_trans,
         dev_trans=train_trans,
-        batch_size=12,
+        batch_size=256,
         model=model,
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": True},
-        num_epochs=10,
+        num_epochs=100,
         save_models="saved_models",
-        features_weights=features_weights,
+        device=device,
+        #features_weights=features_weights,
     )
