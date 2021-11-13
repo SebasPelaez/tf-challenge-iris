@@ -101,5 +101,5 @@ if __name__ == "__main__":
         num_epochs=100,
         save_models="saved_models",
         device=device,
-        #features_weights=features_weights,
+        features_weights=features_weights,
     )
