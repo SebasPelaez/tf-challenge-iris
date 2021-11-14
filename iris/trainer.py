@@ -8,12 +8,15 @@ from torch.nn import Linear, CrossEntropyLoss, Sequential
 from torch.utils.data import sampler
 from torch.utils.data.sampler import WeightedRandomSampler
 
+import torchvision.transforms as transforms
+from torchvision import models
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
 from iris.data import LandMarkDataset
 from iris.models.baseline import BaseLine
 from iris.train_loop import TrainLoop
 
-import torchvision.transforms as transforms
-from torchvision import models
 
 def main(
     img_dir: str,
@@ -72,13 +75,22 @@ if __name__ == "__main__":
     test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0]
     features_weights = img_metadata[img_metadata.iloc[:, 1] == 0].iloc[:, 4]
 
-    train_trans = transforms.Compose(
-        [
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]
-    )
+    train_trans = A.Compose(
+    [
+        A.Resize(224, 224),
+        A.CenterCrop(height=224, width=224, p=0.2),
+        A.CoarseDropout(always_apply=False, p=0.1, max_holes=5, max_height=40, max_width=40, min_holes=1, min_height=8, min_width=8),
+        A.RandomBrightnessContrast(p=0.2),
+        A.Flip(always_apply=False, p=5.0),
+        A.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225],
+        ),
+        ToTensorV2(),
+        #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),       
+    ]
+)
+    
 
     # define model and move model to the right device
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -99,7 +111,7 @@ if __name__ == "__main__":
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": False},
-        num_epochs=500,
+        num_epochs=30,
         save_models="saved_models",
         device=device,
         #features_weights=features_weights,
