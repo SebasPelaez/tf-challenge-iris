@@ -1,9 +1,10 @@
 import pandas as pd
 import torch
 import torch.nn.functional as F
+from torch.nn.modules.dropout import Dropout
 from torch.optim import SGD
 from torch.utils.data import DataLoader
-from torch.nn import Linear, CrossEntropyLoss
+from torch.nn import Linear, CrossEntropyLoss, Sequential
 from torch.utils.data import sampler
 from torch.utils.data.sampler import WeightedRandomSampler
 
@@ -67,7 +68,7 @@ def main(
 if __name__ == "__main__":
 
     img_metadata = pd.read_csv("img_metadata_train_dev.csv")
-    train_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0]
+    train_img_metadata = img_metadata[img_metadata.iloc[:, 1] != 0]
     test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0]
     features_weights = img_metadata[img_metadata.iloc[:, 1] == 0].iloc[:, 4]
 
@@ -84,8 +85,8 @@ if __name__ == "__main__":
 
     out_features = 20
 
-    model = models.resnet18(pretrained=True)
-    model.fc = Linear(model.fc.in_features, out_features)
+    model = models.densenet121(pretrained=True)
+    model.classifier = Linear(model.classifier.in_features, out_features)
     model = model.to(device)
 
     main(
@@ -93,12 +94,12 @@ if __name__ == "__main__":
         img_metadata=(train_img_metadata, test_img_metadata),
         train_trans=train_trans,
         dev_trans=train_trans,
-        batch_size=256,
+        batch_size=64,
         model=model,
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": False},
-        num_epochs=100,
+        num_epochs=500,
         save_models="saved_models",
         device=device,
         #features_weights=features_weights,
