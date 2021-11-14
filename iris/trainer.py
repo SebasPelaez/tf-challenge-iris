@@ -9,7 +9,6 @@ from torch.utils.data.sampler import WeightedRandomSampler
 
 from iris.data import LandMarkDataset
 from iris.models.baseline import BaseLine
-#from iris.train_val_loop import TrainLoop
 from iris.train_loop import TrainLoop
 
 import torchvision.transforms as transforms
