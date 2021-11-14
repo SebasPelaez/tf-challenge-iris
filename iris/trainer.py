@@ -3,16 +3,17 @@ import torch
 import torch.nn.functional as F
 from torch.optim import SGD
 from torch.utils.data import DataLoader
-from torch.nn import Sequential, Dropout, Linear, CrossEntropyLoss
+from torch.nn import Linear, CrossEntropyLoss
 from torch.utils.data import sampler
 from torch.utils.data.sampler import WeightedRandomSampler
 
 from iris.data import LandMarkDataset
 from iris.models.baseline import BaseLine
+#from iris.train_val_loop import TrainLoop
 from iris.train_loop import TrainLoop
 
 import torchvision.transforms as transforms
-
+from torchvision import models
 
 def main(
     img_dir: str,
@@ -41,25 +42,26 @@ def main(
     train_dl = DataLoader(train_ds, batch_size=batch_size, sampler=sampler)
     test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 
-    # Define optmizer
-    params = [params for params in model.parameters() if params.requires_grad]
-    optimizer = SGD(params, **optimizer_params)
+    dataloaders = {"train": train_dl, "val": test_dl}
+    
+    # Define optmizer    
+    optimizer = SGD(model.parameters(), **optimizer_params)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, **lr_scheduler_params)
 
     # Train-val step
     train_loop = TrainLoop(
         num_clases=out_features,
-        train_dataloder=train_dl,
-        test_dataloder=test_dl,
-        loss_fun=CrossEntropyLoss(),
         device=device
     )
+    
     train_loop.train_val(
-        num_epochs=num_epochs,
-        model=model,
-        optimizer=optimizer,
-        lr_scheduler=lr_scheduler,
-        save_models=save_models,
+        num_epochs=num_epochs, 
+        dataloaders=dataloaders, 
+        model=model, 
+        criterion=CrossEntropyLoss(), 
+        optimizer=optimizer, 
+        scheduler=lr_scheduler,
+        save_models=save_models 
     )
 
 
@@ -82,11 +84,10 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     out_features = 20
-    model = BaseLine(
-        model_name="resnet18",
-        use_pretrained=True,
-        last_layer={"fc": Linear(in_features=512, out_features=out_features)},
-    ).to(device)
+
+    model = models.resnet18(pretrained=True)
+    model.fc = Linear(model.fc.in_features, out_features)
+    model = model.to(device)
 
     main(
         img_dir="data/train/",
@@ -97,9 +98,9 @@ if __name__ == "__main__":
         model=model,
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
-        lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": True},
+        lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": False},
         num_epochs=100,
         save_models="saved_models",
         device=device,
-        features_weights=features_weights,
+        #features_weights=features_weights,
     )
