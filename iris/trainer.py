@@ -1,3 +1,4 @@
+from numpy import equal
 import pandas as pd
 import torch
 import torch.nn.functional as F
@@ -69,50 +70,73 @@ def main(
 
 
 if __name__ == "__main__":
-
+    features_weights = None
+    equal_w = True
+    require_grad = True
+    out_features = 20
+    
     img_metadata = pd.read_csv("img_metadata_train_dev.csv")
     train_img_metadata = img_metadata[img_metadata.iloc[:, 1] != 0]
     test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0]
-    features_weights = img_metadata[img_metadata.iloc[:, 1] == 0].iloc[:, 4]
+    
+    
+    if features_weights is not None:
+        if equal_w:
+            features_weights = [1/out_features] * test_img_metadata.shape[0]
+        else:
+            features_weights = img_metadata[img_metadata.iloc[:, 1] == 0].iloc[:, 4]
 
     train_trans = A.Compose(
-    [
-        A.Resize(224, 224),
-        A.CenterCrop(height=224, width=224, p=0.2),
-        A.CoarseDropout(always_apply=False, p=0.1, max_holes=5, max_height=40, max_width=40, min_holes=1, min_height=8, min_width=8),
-        A.RandomBrightnessContrast(p=0.2),
-        A.Flip(always_apply=False, p=5.0),
-        A.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225],
-        ),
-        ToTensorV2(),
-        #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),       
-    ]
-)
+            [
+                A.Resize(224, 224),
+                A.CoarseDropout(always_apply=False, p=0.3, max_holes=5, max_height=40, max_width=40, min_holes=1, min_height=8, min_width=8),
+                A.CenterCrop(height=224, width=224, p=0.3),
+                A.RandomBrightnessContrast(p=0.3),
+                A.Flip(always_apply=False, p=0.3),
+                A.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
+                ),
+                ToTensorV2(),
+            ])
     
+    val_trans = A.Compose(
+            [
+                A.Resize(224, 224),
+                A.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
+                ),
+                ToTensorV2(),
+            ])
 
     # define model and move model to the right device
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    out_features = 20
-
     model = models.densenet121(pretrained=True)
-    model.classifier = Linear(model.classifier.in_features, out_features)
+    if not require_grad:
+        for param in model.parameters():
+                param.requires_grad = False
+    
+    model.classifier = Sequential(
+        #Dropout(p=0.8),
+        Linear(model.classifier.in_features, out_features)
+    )
+    #model = torch.load("saved_models/torchvision.models.densenet_epoch_38_metric_0.6053097248077393.pt")
     model = model.to(device)
 
     main(
         img_dir="data/train/",
         img_metadata=(train_img_metadata, test_img_metadata),
         train_trans=train_trans,
-        dev_trans=train_trans,
+        dev_trans=val_trans,
         batch_size=64,
         model=model,
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": False},
-        num_epochs=30,
+        num_epochs=25,
         save_models="saved_models",
         device=device,
-        #features_weights=features_weights,
+        features_weights=features_weights,
     )
