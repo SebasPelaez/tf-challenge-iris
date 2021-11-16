@@ -1,4 +1,4 @@
-"# tf-challenge-iris" 
+# tf-challenge-iris
 
 ### todo guide:
 * https://www.kaggle.com/georgiisirotenko/pytorch-tpu-baseline-flowers-tranlearning-ensemble
