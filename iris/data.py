@@ -12,29 +12,30 @@ from albumentations.core.composition import Compose as Acompose
 from PIL import Image
 import json
 
-labels = [
-    "tienda",
-    "parqueadero",
-    "belleza/barbería/peluquería",
-    "electrónica/cómputo",
-    "café/restaurante",
-    "electrodomésticos",
-    "talleres carros/motos",
-    "zapatería",
-    "muebles/tapicería",
-    "ferretería",
-    "carnicería/fruver",
-    "puesto móvil/toldito",
-    "farmacia",
-    "supermercado",
-    "ropa",
-    "deporte",
-    "licorera",
-    "hotel",
-    "animales",
-    "bar",
-]
+id_labels = {
+        0: 'animales',
+        1: 'bar',
+        2: 'belleza/barbería/peluquería',
+        3: 'café/restaurante',
+        4: 'carnicería/fruver',
+        5: 'deporte',
+        6: 'electrodomésticos',
+        7: 'electrónica/cómputo',
+        8: 'farmacia',
+        9: 'ferretería',
+        10: 'hotel',
+        11: 'licorera',
+        12: 'muebles/tapicería',
+        13: 'parqueadero',
+        14: 'puesto móvil/toldito',
+        15: 'ropa',
+        16: 'supermercado',
+        17: 'talleres carros/motos',
+        18: 'tienda',
+        19: 'zapatería'
+}
 
+label_id = {label: id for id, label in id_labels.items()}
 
 class LandMarkDataset(Dataset):
     def __init__(
@@ -74,7 +75,7 @@ class LandMarkDataset(Dataset):
             if isinstance(label_metadata["labels"], str)
             else label_metadata["labels"][0]
         )
-        label = labels.index(label_name)
+        label = label_id[label_name]
 
         if self.transform:
             image = (
