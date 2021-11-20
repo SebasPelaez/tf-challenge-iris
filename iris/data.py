@@ -13,26 +13,26 @@ from PIL import Image
 import json
 
 id_labels = {
-        0: 'animales',
-        1: 'bar',
-        2: 'belleza/barbería/peluquería',
-        3: 'café/restaurante',
-        4: 'carnicería/fruver',
-        5: 'deporte',
-        6: 'electrodomésticos',
-        7: 'electrónica/cómputo',
-        8: 'farmacia',
-        9: 'ferretería',
-        10: 'hotel',
-        11: 'licorera',
-        12: 'muebles/tapicería',
-        13: 'parqueadero',
-        14: 'puesto móvil/toldito',
-        15: 'ropa',
-        16: 'supermercado',
-        17: 'talleres carros/motos',
-        18: 'tienda',
-        19: 'zapatería'
+    0: 'animales',
+    1: 'bar',
+    2: 'belleza/barbería/peluquería',
+    3: 'café/restaurante',
+    4: 'carnicería/fruver',
+    5: 'deporte',
+    6: 'electrodomésticos',
+    7: 'electrónica/cómputo',
+    8: 'farmacia',
+    9: 'ferretería',
+    10: 'hotel',
+    11: 'licorera',
+    12: 'muebles/tapicería',
+    13: 'parqueadero',
+    14: 'puesto móvil/toldito',
+    15: 'ropa',
+    16: 'supermercado',
+    17: 'talleres carros/motos',
+    18: 'tienda',
+    19: 'zapatería'
 }
 
 label_id = {label: id for id, label in id_labels.items()}
@@ -41,11 +41,13 @@ class LandMarkDataset(Dataset):
     def __init__(
         self,
         img_dir,
+        background_dir,
         annotations_file: pd.DataFrame,
         transform=None,
         target_transform=None,
     ) -> None:
         self.img_dir = img_dir
+        self.background_dir = background_dir
         self.annotations_file = annotations_file
         self.transform = transform
         self.target_transform = target_transform
@@ -70,6 +72,16 @@ class LandMarkDataset(Dataset):
         with open(img_metadata_path + ".json", "r") as file:
             label_metadata = json.load(file)
 
+        
+        is_facade = 'is_facade' in label_metadata.keys()
+        is_facade = True
+
+        if is_facade and np.random.rand() < 0.7:
+            background_image_dir = list(self.background_dir.glob('*'))
+            background_image_path = str(np.random.choice(background_image_dir, 1)[0])
+            background_image = Image.open(background_image_path)
+            image = self.paste_image_into_background(background=background_image, overlay=image)
+
         label_name = (
             label_metadata["labels"]
             if isinstance(label_metadata["labels"], str)
@@ -90,3 +102,20 @@ class LandMarkDataset(Dataset):
             label = self.target_transform(label)
 
         return image, label
+
+    def paste_image_into_background(self, background, overlay):
+    
+        width, height = overlay.size
+        
+        left = width//8
+        top = height//7 
+        right = 7 * (width//8)
+        bottom = 6 * (height//7)
+        
+        crop_overlay = overlay.crop((left, top, right, bottom))
+        
+        background = background.convert('RGBA')
+        crop_overlay = crop_overlay.convert('RGBA')
+        background.paste(crop_overlay,(left, top, right, bottom), mask = crop_overlay)
+        
+        return background.convert("RGB")
