@@ -21,6 +21,7 @@ from iris.train_loop import TrainLoop
 
 def main(
     img_dir: str,
+    background_dir: str,
     img_metadata: pd.DataFrame,
     train_trans: transforms.Compose,
     dev_trans: transforms.Compose,
@@ -41,8 +42,8 @@ def main(
     )
 
     # Creates dataset and dataloaders
-    train_ds = LandMarkDataset(img_dir, img_metadata[0], train_trans)
-    test_ds = LandMarkDataset(img_dir, img_metadata[1], dev_trans)
+    train_ds = LandMarkDataset(img_dir, background_dir, img_metadata[0], train_trans)
+    test_ds = LandMarkDataset(img_dir, background_dir, img_metadata[1], dev_trans)
     train_dl = DataLoader(train_ds, batch_size=batch_size, sampler=sampler)
     test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 

@@ -2,6 +2,7 @@ import os
 import torch
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 from torchvision.transforms import ToTensor
@@ -47,7 +48,7 @@ class LandMarkDataset(Dataset):
         target_transform=None,
     ) -> None:
         self.img_dir = img_dir
-        self.background_dir = background_dir
+        self.background_dir = Path(background_dir)
         self.annotations_file = annotations_file
         self.transform = transform
         self.target_transform = target_transform
@@ -74,7 +75,6 @@ class LandMarkDataset(Dataset):
 
         
         is_facade = 'is_facade' in label_metadata.keys()
-        is_facade = True
 
         if is_facade and np.random.rand() < 0.7:
             background_image_dir = list(self.background_dir.glob('*'))
