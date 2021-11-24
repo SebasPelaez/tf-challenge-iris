@@ -120,10 +120,8 @@ if __name__ == "__main__":
                 param.requires_grad = False
     
     model.classifier = Sequential(
-        #Dropout(p=0.8),
         Linear(model.classifier.in_features, out_features)
     )
-    #model = torch.load("saved_models/torchvision.models.densenet_epoch_38_metric_0.6053097248077393.pt")
     model = model.to(device)
 
     main(
