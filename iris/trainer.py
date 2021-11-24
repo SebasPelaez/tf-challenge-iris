@@ -125,16 +125,17 @@ if __name__ == "__main__":
     model = model.to(device)
 
     main(
-        img_dir="data/train/",
+        img_dir="dataset/train/",
+        background_dir="dataset/backgrounds/",
         img_metadata=(train_img_metadata, test_img_metadata),
         train_trans=train_trans,
         dev_trans=val_trans,
-        batch_size=64,
+        batch_size=16,
         model=model,
         out_features=out_features,
         optimizer_params={"lr": 0.001, "momentum": 0.9},
         lr_scheduler_params={"gamma": 0.1, "step_size": 500, "verbose": False},
-        num_epochs=25,
+        num_epochs=50,
         save_models="saved_models",
         device=device,
         features_weights=features_weights,
