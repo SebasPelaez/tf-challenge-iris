@@ -150,3 +150,4 @@ cython_debug/
 data/
 dataset*/
 saved_models/
+img/

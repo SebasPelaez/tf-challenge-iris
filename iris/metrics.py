@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sn
 
 
-from iris.data import LandMarkDataset, labels
+from iris.data import LandMarkDataset, id_labels
 
 def main(img_metadata, model_name, fig_name):
     # define model and move model to the right device
@@ -31,7 +31,7 @@ def main(img_metadata, model_name, fig_name):
     model = torch.load(model_name)
 
 
-    test_ds = LandMarkDataset("data/train/", img_metadata, dev_trans)
+    test_ds = LandMarkDataset("dataset/train/","dataset/backgrounds/", img_metadata, dev_trans)
     test_dl = DataLoader(test_ds, batch_size=8, shuffle=False)
 
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     train_img_metadata = img_metadata[img_metadata.iloc[:, 1] != 0]
     test_img_metadata = img_metadata[img_metadata.iloc[:, 1] == 0]
 
-    model_name_ext = "torchvision.models.densenet_epoch_24_metric_0.6017699241638184"
+    model_name_ext = "torchvision.models.densenet_epoch_49_metric_0.6159291863441467"
     main(
         img_metadata = train_img_metadata, 
         model_name=f"saved_models/{model_name_ext}.pt",
